@@ -7,10 +7,17 @@
 #define QAUDRUPLE_VAL 1000
 
 #include <iostream>
+#include <limits>
 #include <string>
 
 
 enum Player {red, yellow};
+
+typedef struct MinimaxRes{
+	int column;
+	int value;
+	int nodes_examined;
+}MinimaxRes;
 
 void print_test(std::string state_str, std::string player, char mode, int depth){
 	std::cout << "Test Running with Input:\n"
@@ -19,6 +26,20 @@ void print_test(std::string state_str, std::string player, char mode, int depth)
 	<< "Mode: " << mode << std::endl
 	<< "Depth: " << depth << std::endl << std::endl;
 }
+
+
+void print_matrix(char state[ROWS][COLS]){
+	// Test print
+	std::cout << "State Matrix:" << std::endl;
+	for(int r = ROWS-1; r >= 0 ; r--){
+		for(int c = 0; c < COLS; c++){
+			std::cout << state[r][c];
+		}
+		std::cout << std::endl;
+	}
+}
+
+
 
 /*
 	count is a num between 2 and 4 (inclusive)
@@ -140,6 +161,94 @@ int evaluation(char state[ROWS][COLS]){
 	return score(state, red) - score(state, yellow);
 }
 
+int utility(char state[ROWS][COLS]){
+	if(num_in_a_row(4, state, red)){
+		return 10000;
+	}
+	else if(num_in_a_row(4,state,yellow)){
+		return -10000;
+	}
+	else{
+		return 0;
+	}
+}
+
+
+MinimaxRes minimax_DFS(char state[ROWS][COLS], int depth, Player player){
+	
+	std::cout << "Depth: " << depth << " | Player: " << (player==red ? "red" : "yellow") << std::endl;
+	print_matrix(state);
+	std::cout << std::endl;
+
+	MinimaxRes result;
+	result.nodes_examined = 1;
+
+	// Check if the game is over
+	int util = utility(state);
+	if(util){
+		result.column = -1;
+		result.value = util;
+		return result;
+	}
+
+	// If we aren't going any deeper, evaluate this position
+	if(depth==1){
+		result.column = -1;
+		result.value = evaluation(state);
+		return result;
+	}
+	else{
+		int max_col;
+		int max_val = std::numeric_limits<int>::min();
+		int min_col;
+		int min_val = std::numeric_limits<int>::max();
+
+		// Generate all possible boards
+		for(int c=0; c<COLS; c++){
+			// Find the first free row to drop a token on
+			for(int r=0; r<ROWS; r++){
+				if(state[r][c]==EMPTY){
+					// Drop a token in this column
+					state[r][c] = (player==red ? 'r' : 'y');
+
+					// Find the new state's minimax value (reduce depth by one and switch players for next turn)
+					MinimaxRes child_minimax = minimax_DFS(state, depth-1, (player==red ? yellow : red));
+
+					// Update vals (use < not <= so the first one is chosen in a tie)
+					if(max_val < child_minimax.value){
+						max_val = child_minimax.value;
+						max_col = c;
+					} 
+					if(min_val > child_minimax.value){
+						min_val = child_minimax.value;
+						min_col = c;
+					}
+
+					result.nodes_examined += child_minimax.nodes_examined;
+
+					// Taken out the token before moving to next column
+					state[r][c] = EMPTY;
+					break;
+				}
+			}
+		}
+
+		// Red picks max, yellow picks min
+		if(player == red){
+			result.column = max_col;
+			result.value = max_val;
+		}
+		else{
+			result.column = min_col;
+			result.value = min_val;
+		}
+
+		return result;
+
+	}
+
+}
+
 
 int main(int argc, char **argv){
 
@@ -172,23 +281,21 @@ int main(int argc, char **argv){
 		}
 	}
 
-	// Test print
-	std::cout << "State Matrix:" << std::endl;
-	for(int r = ROWS-1; r >= 0 ; r--){
-		for(int c = 0; c < COLS; c++){
-			std::cout << state[r][c];
-		}
-		std::cout << std::endl;
-	}
+	print_matrix(state);
 
 	std::cout << "Red Score: " << score(state, red) << std::endl;
 	std::cout << "Yellow Score: " << score(state, yellow) << std::endl;
 	std::cout << "Evaluation: " << evaluation(state) << std::endl;
 
-	// Generate the game tree
+	// Generate the game tree using a Depth-Limited Search
 	for(int i=0; i<COLS; i++){
 		
 	}
+
+	MinimaxRes result = minimax_DFS(state, depth, player);
+
+	std::cout << result.column << std::endl;
+	std::cout << result.nodes_examined << std::endl;
 
 
 }
