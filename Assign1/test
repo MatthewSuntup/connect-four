@@ -1,0 +1,5 @@
+#!/bin/bash
+
+#./Connect4 ".ryyrry,.rryry.,..y.r..,..y....,.......,......." red A 4
+
+./Connect4 "..yyrrr,..ryryr,....y..,.......,.......,......." red A 4

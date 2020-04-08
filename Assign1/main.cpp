@@ -1,0 +1,194 @@
+
+#define ROWS 6
+#define COLS 7
+#define EMPTY '.'
+#define DOUBLE_VAL 10
+#define TRIPLE_VAL 100
+#define QAUDRUPLE_VAL 1000
+
+#include <iostream>
+#include <string>
+
+
+enum Player {red, yellow};
+
+void print_test(std::string state_str, std::string player, char mode, int depth){
+	std::cout << "Test Running with Input:\n"
+	<< "State: " << state_str << std::endl
+	<< "Next Player: " << player << std::endl
+	<< "Mode: " << mode << std::endl
+	<< "Depth: " << depth << std::endl << std::endl;
+}
+
+/*
+	count is a num between 2 and 4 (inclusive)
+*/
+int num_in_a_row(int count, char state[ROWS][COLS], Player player){
+
+	char token = (player==red ? 'r' : 'y');
+	int num = 0;
+	int tmp_check;
+
+	// Iterate through every column and row
+	for(int c = 0; c < COLS; c++){
+		for(int r = 0; r < ROWS; r++){
+			if(state[r][c]==token){
+				// Check horizontal line-up by checking for the right-most token in a line-up
+				// Check there are enough tokens to the left, and that it doesn't extend to the right or further left
+				if(c >= count-1 && (c==COLS-1 || state[r][c+1]!=token) && (c==count-1 || state[r][c-(count-1)-1]!=token)){
+					tmp_check = 1;
+					// Check the tokens to the left to see they're all the same
+					for(int i = (count-1); i>0; i--){
+						if(state[r][c-i]!=token){
+							tmp_check = 0;
+							break;
+						}
+					}
+					if(tmp_check){
+						num++;
+						// printf("Horizontal line-up found\n");
+					}
+				}
+
+				// Check vertical line-up by checking for the top-most token in a line-up
+				// Check there are enough tokens below, and that it doesn't extend above or further below
+				if(r >= count-1 && (r==ROWS-1 || state[r+1][c] != token) && (r==count-1 || state[r-(count-1)-1][c]!=token)){
+					tmp_check = 1;
+					// Check the tokens below to see they're all the same
+					for(int i = (count-1); i>0; i--){
+						if(state[r-i][c]!=token){
+							tmp_check = 0;
+							break;
+						}
+					}
+					if(tmp_check){
+						num++;
+						// printf("Vertical line-up found\n");
+					}
+				}
+
+				// Check bottom-left to top-right diagonal line-up by checking for the right-top-most token
+				// Check enough tokens below and to the left, and doesn't extend beyond or further back
+				if(r >= count-1 && c >= count-1 && (r==ROWS-1 || c==COLS-1 || state[r+1][c+1] != token) && (r==count-1 || c==count-1 || state[r-(count-1)-1][c-(count-1)-1]!=token)){
+					tmp_check = 1;
+					// Check the tokens below and left to see they're all the same
+					for(int i = (count-1); i>0; i--){
+						if(state[r-i][c-i]!=token){
+							tmp_check = 0;
+							break;
+						}
+					}
+					if(tmp_check){
+						num++;
+						// printf("Diagonal bottom-left to top-right line-up found\n");
+					}
+				}
+
+				// Check top-left to bottom-right diagonal line-up by checking for the bottom-right-most token
+				// Check enough tokens above and to the left, and doesn't extend beyond or further back
+				if(r < ROWS-(count-1) && c >= count-1 && (r==0 || c==COLS-1 || state[r-1][c+1] != token) && (r==ROWS-(count-1)-1 || c==count-1 || state[r+(count-1)+1][c-(count-1)-1]!=token)){
+					tmp_check = 1;
+					// Check the tokens above and left to see they're all the same
+					for(int i = (count-1); i>0; i--){
+						if(state[r+i][c-i]!=token){
+							tmp_check = 0;
+							break;
+						}
+					}
+					if(tmp_check){
+						num++;
+						// printf("Diagonal top-left to bottom-right line-up found\n");
+					}
+				}
+			}
+			else if(state[r][c]==EMPTY){
+				// Tokens cannot be floating, so we can move to the next column
+				continue;
+			}
+		}
+	}
+	return num;
+}
+
+
+int score(char state[ROWS][COLS], Player player){
+
+	// Get the total number of tokens of that player's colour
+	int token_count = 0;
+	char token = (player==red ? 'r' : 'y');
+	for(int c = 0; c < COLS; c++){
+		for(int r = 0; r < ROWS; r++){
+			if(state[r][c]==token){
+				token_count++;
+			}
+			else if(state[r][c]==EMPTY){
+				// Tokens cannot be floating, so we can move to the next column
+				continue;
+			}
+		}
+	}
+
+	int score2 = DOUBLE_VAL*num_in_a_row(2, state, player);
+	int score3 = TRIPLE_VAL*num_in_a_row(3, state, player);
+	int score4 = QAUDRUPLE_VAL*num_in_a_row(4, state, player);
+
+	return token_count + score2 + score3 + score4;
+}
+
+
+int evaluation(char state[ROWS][COLS]){
+	return score(state, red) - score(state, yellow);
+}
+
+
+int main(int argc, char **argv){
+
+	std::string state_str = argv[1];
+	std::string player_str = argv[2];
+	char mode = *argv[3];
+	int depth = std::stoi(argv[4]);
+
+	print_test(state_str, player_str, mode, depth);
+
+	// Parse Player
+	Player player;
+	if(player_str[0] = 'r'){
+		player = red;
+	}
+	else if(player_str[0] = 'y'){
+		player = yellow;
+	}
+
+	// Test print
+	std::cout << "Player: " << (player==red ? "red" : "yellow") << std::endl;
+
+	// Parse State
+	char state[ROWS][COLS];
+
+	// Split the state string into a matrix, skipping over the commas
+	for(int i = 0; i < ROWS*(COLS+1); i++){
+		if(i%(COLS+1)!=COLS){
+			state[int(i/(COLS+1))][i%(COLS+1)] = state_str[i];
+		}
+	}
+
+	// Test print
+	std::cout << "State Matrix:" << std::endl;
+	for(int r = ROWS-1; r >= 0 ; r--){
+		for(int c = 0; c < COLS; c++){
+			std::cout << state[r][c];
+		}
+		std::cout << std::endl;
+	}
+
+	std::cout << "Red Score: " << score(state, red) << std::endl;
+	std::cout << "Yellow Score: " << score(state, yellow) << std::endl;
+	std::cout << "Evaluation: " << evaluation(state) << std::endl;
+
+	// Generate the game tree
+	for(int i=0; i<COLS; i++){
+		
+	}
+
+
+}
