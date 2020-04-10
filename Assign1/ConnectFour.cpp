@@ -171,7 +171,7 @@ int evaluation(char state[ROWS][COLS]){
 	return score(state, red) - score(state, yellow);
 }
 
-// A winning state might be 5 in a row or more!!! (because you could have rr.rr and then drop in the middle r)
+// A winning state might be more than 4 in a row!!! (because you could have rr.rr and then drop in the middle r)
 int utility(char state[ROWS][COLS]){
 	if(num_in_a_row(4, state, red) || num_in_a_row(5, state, red) || num_in_a_row(6,state,red)){
 		return r_win;
@@ -270,7 +270,7 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 
 	MinimaxRes result;
 	result.nodes_examined = 1;
-	nodes_global++;
+	nodes_global++;	// Testing check to debug num nodes
 
 	// Check if the game is over
 	int util = utility(state);
@@ -294,11 +294,15 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 		int min_col;
 		int min_val = std::numeric_limits<int>::max();
 
+		bool board_full = true;
+
 		// Generate all possible boards
 		for(int c=0; c<COLS; c++){
 			// Find the first free row to drop a token on
 			for(int r=0; r<ROWS; r++){
 				if(state[r][c]==EMPTY){
+					board_full = false;
+
 					// Drop a token in this column
 					state[r][c] = (player==red ? 'r' : 'y');
 
@@ -363,6 +367,12 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 			result.value = min_val;
 		}
 
+		// This was undefined in prob spec, just say a full board is a draw though
+		if(board_full){
+			result.value = 0;
+			result.column = -1;
+		}
+
 		// printf("%s chose value: %d\n",(player==red?"red":"yellow"), result.value);
 		return result;
 
@@ -370,6 +380,159 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 
 }
 
+// parent is the parent's alpha/beta value
+MinimaxRes newalphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int alpha, int beta){
+	nodes_global++;	// Testing check to debug num nodes
+	
+	// printf("------------------------------------------\n");
+	// std::cout << "+Depth: " << 4-depth << " | Prev player: " << (player==yellow ? "red" : "yellow") << " | Alpha: " << alpha << " | Beta: " << beta << std::endl;
+	// printf("Node num: %d\n", nodes_global);
+	// print_matrix(state);
+	// std::cout << std::endl;
+
+	MinimaxRes result;
+	result.nodes_examined = 1;
+
+	// Check if the game is over
+	int util = utility(state);
+	if(util){
+		result.column = -1;
+		result.value = util;
+		// printf("Terminal State: %d\n", result.value);
+		return result;
+	}
+
+	// If we aren't going any deeper, evaluate this position
+	if(depth==0){
+		result.column = -1;
+		result.value = evaluation(state);
+		// printf("Terminal State: %d\n", result.value);
+		return result;
+	}
+	else{
+		int max_col;
+		int max_val = std::numeric_limits<int>::min();
+		int min_col;
+		int min_val = std::numeric_limits<int>::max();
+
+		// Generate all possible boards
+		for(int c=0; c<COLS; c++){
+			// Find the first free row to drop a token on
+			for(int r=0; r<ROWS; r++){
+				if(state[r][c]==EMPTY){
+					// Drop a token in this column
+					state[r][c] = (player==red ? 'r' : 'y');
+
+					// Find the new state's minimax value (reduce depth by one and switch players for next turn)
+					MinimaxRes child_minimax;
+					if(player == red){
+						child_minimax = newalphabeta_DFS(state, depth-1, yellow, alpha, beta);
+
+						// Add to node count
+						result.nodes_examined += child_minimax.nodes_examined;
+
+						// Taken out the token for the next test
+						state[r][c] = EMPTY;
+
+						// printf("Child minimax val: %d\n", child_minimax.value);
+						// <= instead of < ensures leftmost is chosen
+						if(child_minimax.value > max_val){
+							max_val = child_minimax.value;
+							max_col = c;
+							if(max_val > alpha){
+								alpha = max_val;
+							}
+						}
+
+						if(alpha >= beta){// || alpha == r_win){
+							// printf("PRUNE (alpha>=beta) below depth %d\n", depth);
+							result.value = child_minimax.value;
+							result.column = c;
+							state[r][c] = EMPTY;	// take out added token
+							return result;
+						}
+						// if(child_minimax.value > beta || child_minimax.value == r_win){
+						// 	// Prune remaining nodes (i.e. don't visit more columns)
+						// 	// 
+						// 	result.value = child_minimax.value;
+						// 	result.column = c;
+						// 	result.nodes_examined += child_minimax.nodes_examined;
+						// 	state[r][c] = EMPTY;	// take out added token
+						// 	return result;
+						// }
+					}
+						// TODO: could also prune when you see a win
+					else{
+						child_minimax = newalphabeta_DFS(state, depth-1, red, alpha, beta);
+
+						// Add to node count
+						result.nodes_examined += child_minimax.nodes_examined;
+
+						// Taken out the token for the next test
+						state[r][c] = EMPTY;
+
+						// printf("Child minimax val: %d\n", child_minimax.value);
+						// >= instead of > ensures leftmost is chosen
+
+						if(child_minimax.value < min_val){
+							min_val = child_minimax.value;
+							min_col = c;
+							if(min_val < beta){
+								beta = min_val;
+							}
+						}
+
+						if(beta <= alpha){// || beta==y_win){
+							// printf("PRUNE (beta<=alpha) below depth %d\n", depth);
+							result.value = child_minimax.value;
+							result.column = c;
+							state[r][c] = EMPTY;	// take out added token
+							return result;
+						}
+
+						// if(parent >= child_minimax.value < min_val || child_minimax.value == y_win){
+						// 	// Prune remaining nodes (i.e. don't visit more columns)
+						// 	// printf("PRUNE below depth %d\n", depth);
+						// 	result.value = child_minimax.value;
+						// 	result.column = c;
+						// 	result.nodes_examined += child_minimax.nodes_examined;
+						// 	state[r][c] = EMPTY;	// take out added token
+						// 	return result;
+						// }
+					}
+
+					// Update vals (use < not <= so the first one is chosen in a tie)
+					// if(max_val < child_minimax.value){
+					// 	max_val = child_minimax.value;
+					// 	max_col = c;
+					// } 
+					// if(min_val > child_minimax.value){
+					// 	min_val = child_minimax.value;
+					// 	min_col = c;
+					// }
+
+					// Move to next column (break out of search for free row within current column)
+					break;
+				}
+			}
+		}
+
+		// Red picks max, yellow picks min
+		if(player == red){
+			result.column = max_col;
+			result.value = max_val;
+		}
+		else{
+			result.column = min_col;
+			result.value = min_val;
+		}
+
+		// printf("%s chose value: %d\n",(player==red?"red":"yellow"), result.value);
+		return result;
+
+	}
+
+}
 
 int main(int argc, char **argv){
 
@@ -420,8 +583,13 @@ int main(int argc, char **argv){
 		result = minimax_DFS(state, depth, player);
 	} 
 	else {
-		int parent = (player==red ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min());
-		result = alphabeta_DFS(state, depth, player, parent);
+		// int parent = (player==red ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min());
+
+		// result = alphabeta_DFS(state, depth, player, parent);
+
+		int alpha = std::numeric_limits<int>::min();
+		int beta = std::numeric_limits<int>::max();
+		result = newalphabeta_DFS(state, depth, player, alpha, beta);
 	}
 
 
