@@ -1,18 +1,26 @@
+// COMP3608: Introduction to AI (Adv.) - USYD
+// Assignment 1
+// ConectFour.cpp
+// Author: Matthew Suntup
+// Date: 10 April 2020
 
+// Grid Size
 #define ROWS 6
 #define COLS 7
+
+// Empty Marker
 #define EMPTY '.'
+
+// Evaluation and Utility Scores
 #define DOUBLE_VAL 10
 #define TRIPLE_VAL 100
 #define QAUDRUPLE_VAL 1000
-
-#define r_win 10000
-#define y_win -10000
+#define R_WIN_SCORE 10000
+#define Y_WIN_SCORE -10000
 
 #include <iostream>
 #include <limits>
 #include <string>
-
 
 
 enum Player {red, yellow};
@@ -26,27 +34,25 @@ typedef struct MinimaxRes{
 
 int nodes_global=0;
 
+// void print_test(std::string state_str, std::string player, char mode, int depth){
+// 	std::cout << "Test Running with Input:\n"
+// 	<< "State: " << state_str << std::endl
+// 	<< "Next Player: " << player << std::endl
+// 	<< "Mode: " << mode << std::endl
+// 	<< "Depth: " << depth << std::endl << std::endl;
+// }
 
-void print_test(std::string state_str, std::string player, char mode, int depth){
-	std::cout << "Test Running with Input:\n"
-	<< "State: " << state_str << std::endl
-	<< "Next Player: " << player << std::endl
-	<< "Mode: " << mode << std::endl
-	<< "Depth: " << depth << std::endl << std::endl;
-}
 
-
-void print_matrix(char state[ROWS][COLS]){
-	// Test print
-	// std::cout << "State Matrix:" << std::endl;
-	for(int r = ROWS-1; r >= 0 ; r--){
-		for(int c = 0; c < COLS; c++){
-			std::cout << state[r][c];
-		}
-		std::cout << std::endl;
-	}
-}
-
+// void print_matrix(char state[ROWS][COLS]){
+// 	// Test print
+// 	// std::cout << "State Matrix:" << std::endl;
+// 	for(int r = ROWS-1; r >= 0 ; r--){
+// 		for(int c = 0; c < COLS; c++){
+// 			std::cout << state[r][c];
+// 		}
+// 		std::cout << std::endl;
+// 	}
+// }
 
 
 /*
@@ -174,10 +180,10 @@ int evaluation(char state[ROWS][COLS]){
 // A winning state might be more than 4 in a row!!! (because you could have rr.rr and then drop in the middle r)
 int utility(char state[ROWS][COLS]){
 	if(num_in_a_row(4, state, red) || num_in_a_row(5, state, red) || num_in_a_row(6,state,red)){
-		return r_win;
+		return R_WIN_SCORE;
 	}
 	else if(num_in_a_row(4,state,yellow) || num_in_a_row(5, state, yellow) || num_in_a_row(6,state,yellow)){
-		return y_win;
+		return Y_WIN_SCORE;
 	}
 	else{
 		return 0;
@@ -312,7 +318,7 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 						child_minimax = alphabeta_DFS(state, depth-1, yellow, max_val);
 						// printf("Child minimax val: %d\n", child_minimax.value);
 						// <= instead of < ensures leftmost is chosen
-						if(parent <= child_minimax.value || child_minimax.value == r_win){
+						if(parent <= child_minimax.value || child_minimax.value == R_WIN_SCORE){
 							// Prune remaining nodes (i.e. don't visit more columns)
 							// printf("PRUNE below depth %d\n", depth);
 							result.value = child_minimax.value;
@@ -327,7 +333,7 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 						child_minimax = alphabeta_DFS(state, depth-1, red, min_val);
 						// printf("Child minimax val: %d\n", child_minimax.value);
 						// >= instead of > ensures leftmost is chosen
-						if(parent >= child_minimax.value || child_minimax.value == y_win){
+						if(parent >= child_minimax.value || child_minimax.value == Y_WIN_SCORE){
 							// Prune remaining nodes (i.e. don't visit more columns)
 							// printf("PRUNE below depth %d\n", depth);
 							result.value = child_minimax.value;
@@ -444,7 +450,7 @@ MinimaxRes newalphabeta_DFS(char state[ROWS][COLS], int depth, Player player, in
 							}
 						}
 
-						if(alpha >= beta){// || alpha == r_win){
+						if(alpha >= beta){// || alpha == R_WIN_SCORE){
 							// printf("PRUNE (alpha>=beta) below depth %d\n", depth);
 							result.value = child_minimax.value;
 							result.column = c;
@@ -482,7 +488,7 @@ MinimaxRes newalphabeta_DFS(char state[ROWS][COLS], int depth, Player player, in
 							}
 						}
 
-						if(beta <= alpha){// || beta==y_win){
+						if(beta <= alpha){// || beta==Y_WIN_SCORE){
 							// printf("PRUNE (beta<=alpha) below depth %d\n", depth);
 							result.value = child_minimax.value;
 							result.column = c;
@@ -490,7 +496,7 @@ MinimaxRes newalphabeta_DFS(char state[ROWS][COLS], int depth, Player player, in
 							return result;
 						}
 
-						// if(parent >= child_minimax.value < min_val || child_minimax.value == y_win){
+						// if(parent >= child_minimax.value < min_val || child_minimax.value == Y_WIN_SCORE){
 						// 	// Prune remaining nodes (i.e. don't visit more columns)
 						// 	// printf("PRUNE below depth %d\n", depth);
 						// 	result.value = child_minimax.value;

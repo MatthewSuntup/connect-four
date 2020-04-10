@@ -1,3 +1,17 @@
+// COMP3608: Introduction to AI (Adv.) - USYD
+// Assignment 1
+// ConectFour.cpp
+// Author: Matthew Suntup
+// Date: 10 April 2020
+
+// TOURNAMENT CODE
+// Differences to main code:
+//	- ignores user input for depth and mode
+//	- fixed tournament depth in preprocessor definitions
+//	- stripped out unecessary functions (e.g. minimax)
+//	- checks value of not playing at all as an additional option
+
+#define TOURNAMENT_DEPTH 8
 
 #define ROWS 6
 #define COLS 7
@@ -13,6 +27,7 @@
 #include <limits>
 #include <string>
 
+// #include <chrono>
 
 
 enum Player {red, yellow};
@@ -171,7 +186,7 @@ int evaluation(char state[ROWS][COLS]){
 	return score(state, red) - score(state, yellow);
 }
 
-// A winning state might be 5 in a row or more!!! (because you could have rr.rr and then drop in the middle r)
+// A winning state might be more than 4 in a row!!! (because you could have rr.rr and then drop in the middle r)
 int utility(char state[ROWS][COLS]){
 	if(num_in_a_row(4, state, red) || num_in_a_row(5, state, red) || num_in_a_row(6,state,red)){
 		return r_win;
@@ -185,11 +200,15 @@ int utility(char state[ROWS][COLS]){
 }
 
 
-MinimaxRes minimax_DFS(char state[ROWS][COLS], int depth, Player player){
+
+MinimaxRes newalphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int alpha, int beta){
+	nodes_global++;	// Testing check to debug num nodes
 	
-	std::cout << "Depth: " << depth << " | Player: " << (player==red ? "red" : "yellow") << std::endl;
-	print_matrix(state);
-	std::cout << std::endl;
+	// printf("------------------------------------------\n");
+	// std::cout << "+Depth: " << 4-depth << " | Prev player: " << (player==yellow ? "red" : "yellow") << " | Alpha: " << alpha << " | Beta: " << beta << std::endl;
+	// printf("Node num: %d\n", nodes_global);
+	// print_matrix(state);
+	// std::cout << std::endl;
 
 	MinimaxRes result;
 	result.nodes_examined = 1;
@@ -199,6 +218,7 @@ MinimaxRes minimax_DFS(char state[ROWS][COLS], int depth, Player player){
 	if(util){
 		result.column = -1;
 		result.value = util;
+		// printf("Terminal State: %d\n", result.value);
 		return result;
 	}
 
@@ -206,86 +226,7 @@ MinimaxRes minimax_DFS(char state[ROWS][COLS], int depth, Player player){
 	if(depth==0){
 		result.column = -1;
 		result.value = evaluation(state);
-		return result;
-	}
-	else{
-		int max_col;
-		int max_val = std::numeric_limits<int>::min();
-		int min_col;
-		int min_val = std::numeric_limits<int>::max();
-
-		// Generate all possible boards
-		for(int c=0; c<COLS; c++){
-			// Find the first free row to drop a token on
-			for(int r=0; r<ROWS; r++){
-				if(state[r][c]==EMPTY){
-					// Drop a token in this column
-					state[r][c] = (player==red ? 'r' : 'y');
-
-					// Find the new state's minimax value (reduce depth by one and switch players for next turn)
-					MinimaxRes child_minimax = minimax_DFS(state, depth-1, (player==red ? yellow : red));
-
-					// Update vals (use < not <= so the first one is chosen in a tie)
-					if(max_val < child_minimax.value){
-						max_val = child_minimax.value;
-						max_col = c;
-					} 
-					if(min_val > child_minimax.value){
-						min_val = child_minimax.value;
-						min_col = c;
-					}
-
-					result.nodes_examined += child_minimax.nodes_examined;
-
-					// Taken out the token before moving to next column
-					state[r][c] = EMPTY;
-					break;
-				}
-			}
-		}
-
-		// Red picks max, yellow picks min
-		if(player == red){
-			result.column = max_col;
-			result.value = max_val;
-		}
-		else{
-			result.column = min_col;
-			result.value = min_val;
-		}
-
-		return result;
-
-	}
-
-}
-
-// parent is the parent's alpha/beta value
-MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int parent){
-	
-	printf("-------------------------\n");
-	std::cout << "Depth: " << depth << " | Next player: " << (player==red ? "red" : "yellow") << " | Parent: " << parent << std::endl;
-	print_matrix(state);
-	std::cout << std::endl;
-
-	MinimaxRes result;
-	result.nodes_examined = 1;
-	nodes_global++;
-
-	// Check if the game is over
-	int util = utility(state);
-	if(util){
-		result.column = -1;
-		result.value = util;
-		printf("Terminal State: %d\n", result.value);
-		return result;
-	}
-
-	// If we aren't going any deeper, evaluate this position
-	if(depth==0){
-		result.column = -1;
-		result.value = evaluation(state);
-		printf("Terminal State: %d\n", result.value);
+		// printf("Terminal State: %d\n", result.value);
 		return result;
 	}
 	else{
@@ -305,54 +246,138 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 					// Find the new state's minimax value (reduce depth by one and switch players for next turn)
 					MinimaxRes child_minimax;
 					if(player == red){
-						child_minimax = alphabeta_DFS(state, depth-1, yellow, max_val);
+						child_minimax = newalphabeta_DFS(state, depth-1, yellow, alpha, beta);
+
+						// Add to node count
+						result.nodes_examined += child_minimax.nodes_examined;
+
+						// Taken out the token for the next test
+						state[r][c] = EMPTY;
+
 						// printf("Child minimax val: %d\n", child_minimax.value);
 						// <= instead of < ensures leftmost is chosen
-						if(parent <= child_minimax.value || child_minimax.value == r_win){
-							// Prune remaining nodes (i.e. don't visit more columns)
-							printf("PRUNE below depth %d\n", depth);
+						if(child_minimax.value > max_val){
+							max_val = child_minimax.value;
+							max_col = c;
+							if(max_val > alpha){
+								alpha = max_val;
+							}
+						}
+
+						if(alpha >= beta){// || alpha == r_win){
+							// printf("PRUNE (alpha>=beta) below depth %d\n", depth);
 							result.value = child_minimax.value;
 							result.column = c;
-							result.nodes_examined += child_minimax.nodes_examined;
 							state[r][c] = EMPTY;	// take out added token
 							return result;
 						}
+						// if(child_minimax.value > beta || child_minimax.value == r_win){
+						// 	// Prune remaining nodes (i.e. don't visit more columns)
+						// 	// 
+						// 	result.value = child_minimax.value;
+						// 	result.column = c;
+						// 	result.nodes_examined += child_minimax.nodes_examined;
+						// 	state[r][c] = EMPTY;	// take out added token
+						// 	return result;
+						// }
 					}
 						// TODO: could also prune when you see a win
 					else{
-						child_minimax = alphabeta_DFS(state, depth-1, red, min_val);
+						child_minimax = newalphabeta_DFS(state, depth-1, red, alpha, beta);
+
+						// Add to node count
+						result.nodes_examined += child_minimax.nodes_examined;
+
+						// Taken out the token for the next test
+						state[r][c] = EMPTY;
+
 						// printf("Child minimax val: %d\n", child_minimax.value);
 						// >= instead of > ensures leftmost is chosen
-						if(parent >= child_minimax.value || child_minimax.value == y_win){
-							// Prune remaining nodes (i.e. don't visit more columns)
-							printf("PRUNE below depth %d\n", depth);
+
+						if(child_minimax.value < min_val){
+							min_val = child_minimax.value;
+							min_col = c;
+							if(min_val < beta){
+								beta = min_val;
+							}
+						}
+
+						if(beta <= alpha){// || beta==y_win){
+							// printf("PRUNE (beta<=alpha) below depth %d\n", depth);
 							result.value = child_minimax.value;
 							result.column = c;
-							result.nodes_examined += child_minimax.nodes_examined;
 							state[r][c] = EMPTY;	// take out added token
 							return result;
 						}
+
+						// if(parent >= child_minimax.value < min_val || child_minimax.value == y_win){
+						// 	// Prune remaining nodes (i.e. don't visit more columns)
+						// 	// printf("PRUNE below depth %d\n", depth);
+						// 	result.value = child_minimax.value;
+						// 	result.column = c;
+						// 	result.nodes_examined += child_minimax.nodes_examined;
+						// 	state[r][c] = EMPTY;	// take out added token
+						// 	return result;
+						// }
 					}
 
 					// Update vals (use < not <= so the first one is chosen in a tie)
-					if(max_val < child_minimax.value){
-						max_val = child_minimax.value;
-						max_col = c;
-					} 
-					if(min_val > child_minimax.value){
-						min_val = child_minimax.value;
-						min_col = c;
-					}
+					// if(max_val < child_minimax.value){
+					// 	max_val = child_minimax.value;
+					// 	max_col = c;
+					// } 
+					// if(min_val > child_minimax.value){
+					// 	min_val = child_minimax.value;
+					// 	min_col = c;
+					// }
 
-					result.nodes_examined += child_minimax.nodes_examined;
-
-					// Taken out the token before moving to next column
-					state[r][c] = EMPTY;
+					// Move to next column (break out of search for free row within current column)
 					break;
 				}
 			}
 		}
 
+
+		// Run it again without playing a new piece
+		MinimaxRes child_minimax;
+		if(player==red){
+			child_minimax = newalphabeta_DFS(state, depth-1, (player==red?yellow:red), alpha, beta);
+			result.nodes_examined += child_minimax.nodes_examined;
+
+			if(child_minimax.value > max_val){
+				max_val = child_minimax.value;
+				max_col = -1;
+				if(max_val > alpha){
+					alpha = max_val;
+				}
+			}
+
+			if(alpha >= beta){// || alpha == r_win){
+				// printf("PRUNE (alpha>=beta) below depth %d\n", depth);
+				result.value = child_minimax.value;
+				result.column = -1;
+				return result;
+			}
+		} else {
+			child_minimax = newalphabeta_DFS(state, depth-1, red, alpha, beta);
+			result.nodes_examined += child_minimax.nodes_examined;
+
+			if(child_minimax.value < min_val){
+				min_val = child_minimax.value;
+				min_col = -1;
+				if(min_val < beta){
+					beta = min_val;
+				}
+			}
+
+			if(beta <= alpha){// || beta==y_win){
+				// printf("PRUNE (beta<=alpha) below depth %d\n", depth);
+				result.value = child_minimax.value;
+				result.column = -1;
+				return result;
+			}
+		}
+		
 		// Red picks max, yellow picks min
 		if(player == red){
 			result.column = max_col;
@@ -363,34 +388,35 @@ MinimaxRes alphabeta_DFS(char state[ROWS][COLS], int depth, Player player, int p
 			result.value = min_val;
 		}
 
-		printf("%s chose value: %d\n",(player==red?"red":"yellow"), result.value);
+		// printf("%s chose value: %d\n",(player==red?"red":"yellow"), result.value);
 		return result;
 
 	}
 
 }
 
-
 int main(int argc, char **argv){
+	// auto start = std::chrono::high_resolution_clock::now();
 
 	std::string state_str = argv[1];
 	std::string player_str = argv[2];
-	char mode = *argv[3];
-	int depth = std::stoi(argv[4]);
+	// char mode = *argv[3];
+	// int depth = std::stoi(argv[4]);
 
-	print_test(state_str, player_str, mode, depth);
+	// print_test(state_str, player_str, mode, depth);
 
 	// Parse Player
 	Player player;
-	if(player_str[0] = 'r'){
+	if(player_str[0] == 'r'){
 		player = red;
 	}
-	else if(player_str[0] = 'y'){
+	else if(player_str[0] == 'y'){
 		player = yellow;
 	}
 
+
 	// Test print
-	std::cout << "Player: " << (player==red ? "red" : "yellow") << std::endl;
+	// std::cout << "Player: " << (player==red ? "red" : "yellow") << std::endl;
 
 	// Parse State
 	char state[ROWS][COLS];
@@ -402,24 +428,23 @@ int main(int argc, char **argv){
 		}
 	}
 
-	print_matrix(state);
 
-	std::cout << "Red Score: " << score(state, red) << std::endl;
-	std::cout << "Yellow Score: " << score(state, yellow) << std::endl;
-	std::cout << "Evaluation: " << evaluation(state) << std::endl;
+	MinimaxRes result;
 
-	// Generate the game tree using a Depth-Limited Search
-	for(int i=0; i<COLS; i++){
-		
+	int alpha = std::numeric_limits<int>::min();
+	int beta = std::numeric_limits<int>::max();
+	result = newalphabeta_DFS(state, TOURNAMENT_DEPTH, player, alpha, beta);
+
+	// If result is -1, that means skipping your turn is best
+	if(result.column!=-1){
+		std::cout << result.column << std::endl;
 	}
+	// std::cout << result.nodes_examined << std::endl;
+	// std::cout << nodes_global << std::endl;
 
-	// MinimaxRes result = minimax_DFS(state, depth, player);
+	// auto end = std::chrono::high_resolution_clock::now();
 
-	int parent = (player==red ? std::numeric_limits<int>::max() : std::numeric_limits<int>::min());
-	MinimaxRes result = alphabeta_DFS(state, depth, player, parent);
-
-	std::cout << result.column << std::endl;
-	std::cout << result.nodes_examined << std::endl;
-	std::cout << nodes_global << std::endl;
-
+	// double time = std::chrono::duration_cast<std::chrono::nanoseconds>(end-start).count();
+	// time *= 1e-9;
+	// printf("Time taken: %.9fs\n",time);
 }
