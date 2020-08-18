@@ -1,4 +1,4 @@
-# comp3608
-Assignment 1 for COMP3608: Introduction to Artificial Intellegence (Adv.) 2020 Semester 1. This repository is private and closed source in the interest of university academic honesty policies. 
+# Connect Four Bot
+This code was developed for a University of Sydney assignment in the Advanced Introduction to Artificial Intelligence course (2020 Semester 1). It is now being updated with clearer organisation and documentation for an unfamiliar reader.
 
-(I didn't end up using this repository for the second assignment.)
+Two versions of an automated Connect Four player were produced, based on two sets of requirements for the assignment. One version followed stricter requirements and provided the user with more options, while the second was streamlined to compete in a tournament against other bots.
