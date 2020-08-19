@@ -6,12 +6,12 @@
 # uncessary given I'm cleaning up a small program.
 
 echo "Compiling..."
-g++ ConnectFour.cpp -o ConnectFour
+g++ connect_four.cpp evaluation.cpp debugging.cpp -o connect_four.out
 
 echo "Running..."
-./ConnectFour.out .ryyrry,.rryry.,..y.r..,..y....,.......,....... red A 4
+./connect_four.out .ryyrry,.rryry.,..y.r..,..y....,.......,....... red A 4
 # Should produce: 1, 297
 
 echo "Running..."
-./ConnectFour.out .ryyrry,.rryry.,..y.r..,..y....,.......,....... yellow M 3
+./connect_four.out .ryyrry,.rryry.,..y.r..,..y....,.......,....... yellow M 3
 # Should produce: 4, 357
