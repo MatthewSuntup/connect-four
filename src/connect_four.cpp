@@ -2,7 +2,7 @@
 // Main and core functions for the connect_four program.
 // Author: Matthew Suntup
 // Original Project: April 2020
-// Last Modified: 20 August 2020
+// Last Modified: 21 August 2020
 
 #include <iostream>
 #include <limits>
@@ -287,7 +287,13 @@ int main(int argc, char **argv) {
   std::string state_str = argv[1];
   std::string player_str = argv[2];
   char mode = *argv[3];
-  int depth = std::stoi(argv[4]);
+  int depth;
+  try {
+    depth = std::stoi(argv[4]);
+  } catch (std::invalid_argument& e) {
+    PrintError("Invalid <depth> argument");
+    return 1;
+  }
 
   if (DEBUG) {
     PrintTest(state_str, player_str, mode, depth);
