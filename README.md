@@ -1,7 +1,13 @@
 # <img src="img/Connect Four Project Logo.png?raw=true" height="70">
 
-<p>
-  <img src="https://img.shields.io/github/languages/top/MatthewSuntup/connectFour" />
+<p align = center>
+  <img src="https://img.shields.io/badge/-C%2B%2B-00599C?logo=C%2B%2B"/>
+  <img src="https://img.shields.io/badge/-Markdown-000000?logo=markdown"/>
+  <img src="https://img.shields.io/badge/-Sublime%20Text-DB6204?logo=sublime-text&logoColor=white"/>
+  <img src="https://img.shields.io/badge/-Atom-239120?logo=atom&logoColor=white"/>
+  <img src="https://img.shields.io/badge/-Git-D51007?logo=git&logoColor=white"/>
+  <img src="https://img.shields.io/badge/-GitHub-181717?logo=github&logoColor=white"/>
+  <img src="https://img.shields.io/badge/-Illustrator-DB6204?logo=adobe-illustrator&logoColor=white"/>
 </p>
 
 ## About
@@ -14,7 +20,7 @@ This code was originally developed for a University of Sydney assignment in the 
 - [Installation](#Installation)
 - [Usage](#Usage)
 - [Lessons](#Lessons)
-- [Future Work](#Future_Work)
+- [Future Work](#Future-Work)
 - [Credit](#Credit)
 - [Disclaimer](#Disclaimer)
 
