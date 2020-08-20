@@ -1,3 +1,6 @@
+// evaluation.cpp
+// Functions used to determine the winning player and evaluate how "good" a
+// board state is for either player.
 
 #include "debugging.hpp"
 #include "evaluation.hpp"
@@ -6,7 +9,7 @@
 // player. 
 // Inputs:
 //  state   -   the current board state
-int evaluation(char state[kRows][kCols]){
+int evaluation(char state[kRows][kCols]) {
   return score(state, red) - score(state, yellow);
 }
 
@@ -17,10 +20,12 @@ int evaluation(char state[kRows][kCols]){
 // if the game is won, and 0 otherwise.
 // Inputs:
 //  state   -   the current board state
-int utility(char state[kRows][kCols]){
-  if (num_in_a_row(4, state, red) || num_in_a_row(5, state, red) || num_in_a_row(6,state,red)) {
+int utility(char state[kRows][kCols]) {
+  if (num_in_a_row(4, state, red) || num_in_a_row(5, state, red) || 
+        num_in_a_row(6,state,red)) {
     return kRWinScore;
-  } else if (num_in_a_row(4,state,yellow) || num_in_a_row(5, state, yellow) || num_in_a_row(6,state,yellow)) {
+  } else if (num_in_a_row(4,state,yellow) || num_in_a_row(5, state, yellow) || 
+              num_in_a_row(6,state,yellow)) {
     return kYWinScore;
   } else {
     return 0;
@@ -33,7 +38,7 @@ int utility(char state[kRows][kCols]){
 // Inputs:
 //  state   -   the current board state
 //  player  -   the player being evaluated
-int score(char state[kRows][kCols], Player player){
+int score(char state[kRows][kCols], Player player) {
 
   // Get the total number of tokens of that player's colour
   int token_count = 0;
@@ -62,7 +67,7 @@ int score(char state[kRows][kCols], Player player){
 //  count   -   number of tokens in a row to check for {2,3,4}
 //  state   -   the current board state
 //  player  -   the player corresponding to the colour being checked
-int num_in_a_row(int count, char state[kRows][kCols], Player player){
+int num_in_a_row(int count, char state[kRows][kCols], Player player) {
 
   char token = (player==red ? 'r' : 'y');
   int num = 0;
@@ -72,9 +77,12 @@ int num_in_a_row(int count, char state[kRows][kCols], Player player){
   for (int c = 0; c < kCols; c++) {
     for (int r = 0; r < kRows; r++) {
       if (state[r][c] == token) {
-        // Check horizontal line-up by checking for the right-most token in a line-up
-        // Check there are enough tokens to the left, and that it doesn't extend to the right or further left
-        if (c >= count-1 && (c == kCols - 1 || state[r][c + 1]!=token) && (c == count - 1 || state[r][c - (count - 1) - 1] != token)) {
+        // Check horizontal line-up by checking for the right-most token in a 
+        // line-up
+        // Check there are enough tokens to the left, and that it doesn't 
+        // extend to the right or further left
+        if (c >= count-1 && (c == kCols - 1 || state[r][c + 1]!=token) && 
+           (c == count - 1 || state[r][c - (count - 1) - 1] != token)) {
           tmp_check = 1;
           // Check the tokens to the left to see they're all the same
           for (int i = (count - 1); i > 0; i--) {
@@ -91,9 +99,12 @@ int num_in_a_row(int count, char state[kRows][kCols], Player player){
           }
         }
 
-        // Check vertical line-up by checking for the top-most token in a line-up
-        // Check there are enough tokens below, and that it doesn't extend above or further below
-        if (r >= count - 1 && (r == kRows - 1 || state[r + 1][c] != token) && (r ==count - 1 || state[r-(count - 1) - 1][c] != token)) {
+        // Check vertical line-up by checking for the top-most token in a 
+        // line-up
+        // Check there are enough tokens below, and that it doesn't extend 
+        // above or further below
+        if (r >= count - 1 && (r == kRows - 1 || state[r + 1][c] != token) && 
+            (r ==count - 1 || state[r-(count - 1) - 1][c] != token)) {
           tmp_check = 1;
           // Check the tokens below to see they're all the same
           for (int i = (count - 1); i > 0; i--) {
@@ -110,9 +121,15 @@ int num_in_a_row(int count, char state[kRows][kCols], Player player){
           }
         }
 
-        // Check bottom-left to top-right diagonal line-up by checking for the right-top-most token
-        // Check enough tokens below and to the left, and doesn't extend beyond or further back
-        if (r >= count - 1 && c >= count - 1 && (r == kRows - 1 || c == kCols - 1 || state[r + 1][c + 1] != token) && (r == count - 1 || c == count - 1 || state[r - (count - 1) - 1][c - (count - 1) - 1] != token)) {
+        // Check bottom-left to top-right diagonal line-up by checking for the 
+        // right-top-most token
+        // Check enough tokens below and to the left, and doesn't extend beyond 
+        // or further back
+        if (r >= count - 1 && c >= count - 1 && 
+            (r == kRows - 1 || c == kCols - 1 || 
+              state[r + 1][c + 1] != token) && (r == count - 1 || 
+              c == count - 1 || state[r - (count - 1) - 1][c - (count - 1) - 1] 
+              != token)) {
           tmp_check = 1;
           // Check the tokens below and left to see they're all the same
           for (int i = (count - 1); i > 0; i--) {
@@ -129,9 +146,14 @@ int num_in_a_row(int count, char state[kRows][kCols], Player player){
           }
         }
 
-        // Check top-left to bottom-right diagonal line-up by checking for the bottom-right-most token
-        // Check enough tokens above and to the left, and doesn't extend beyond or further back
-        if(r < kRows - (count - 1) && c >= count - 1 && (r == 0 || c == kCols - 1 || state[r - 1][c + 1] != token) && (r == kRows - (count - 1) - 1 || c == count - 1 || state[r + (count - 1) + 1][c - (count - 1) - 1] != token)) {
+        // Check top-left to bottom-right diagonal line-up by checking for the 
+        // bottom-right-most token
+        // Check enough tokens above and to the left, and doesn't extend beyond
+        // or further back
+        if(r < kRows - (count - 1) && c >= count - 1 && 
+            (r == 0 || c == kCols - 1 || state[r - 1][c + 1] != token) && 
+            (r == kRows - (count - 1) - 1 || c == count - 1 || 
+            state[r + (count - 1) + 1][c - (count - 1) - 1] != token)) {
           tmp_check = 1;
           // Check the tokens above and left to see they're all the same
           for (int i = (count - 1); i > 0; i--) {

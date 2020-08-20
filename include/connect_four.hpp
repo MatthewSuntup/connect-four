@@ -23,6 +23,9 @@ typedef struct MinimaxRes{
 }MinimaxRes;
 
 MinimaxRes MinimaxDFS(char state[kRows][kCols], int depth, Player player);
-MinimaxRes AlphaBetaDFS(char state[kRows][kCols], int depth, Player player, int alpha, int beta);
+MinimaxRes AlphaBetaDFS(char state[kRows][kCols], int depth, Player player, 
+						int alpha, int beta);
+ void PrintUsage(void);
+ void PrintError(std::string msg);
 
-#endif
+#endif // CONNECT_FOUR_HPP_

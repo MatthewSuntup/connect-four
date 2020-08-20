@@ -11,4 +11,4 @@
 void PrintTest(std::string state_str, std::string player, char mode, int depth);
 void PrintMatrix(char state[kRows][kCols]);
 
-#endif
+#endif // DEBUGGING_HPP_
