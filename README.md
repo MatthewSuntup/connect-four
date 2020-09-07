@@ -28,12 +28,12 @@ This code was originally developed for a University of Sydney assignment in the 
 ## Installation
 1. Clone this repository to your local machine using one of the following:
 ```
-git clone git@github.com:MatthewSuntup/connectFour.git
-git clone https://github.com/MatthewSuntup/connectFour.git
+git clone git@github.com:MatthewSuntup/connect-four.git
+git clone https://github.com/MatthewSuntup/connect-four.git
 ```
 2. Navigate to the root folder:
 ```
-cd connectFour
+cd connect-four
 ```
 3. Compile the project using the Makefile (command may vary depending on your setup):
 ```
@@ -84,7 +84,7 @@ Meaning the algorithm has chosen the 2nd column as the best option for red to pl
 
 I wrote this program as part of an artificial intelligence course, and my biggest takeaway was definitely a better understanding of minimax and alpha-beta pruning algorithms.
 
-When I came back to the code to clean it up I took the opportunity to use some tools that I didn't have a lot of experience in. I now feel much more comfortable with makefiles. Previously I often relied on auto-generated makefiles or using a template, however, this time I built up each feature of the makefile one at a time by learning the individual symbols and syntax. I also went through the Google C++ style guide for inspiration on how to best format the code for readability and became familiar with standards that I now plan to use in future C++ code. Plus I got some experience with Adobe Illustrator to make the [logo](https://github.com/MatthewSuntup/connectFour/blob/master/img/Connect%20Four%20Project%20Logo.png) at the top of this README!
+When I came back to the code to clean it up I took the opportunity to use some tools that I didn't have a lot of experience in. I now feel much more comfortable with makefiles. Previously I often relied on auto-generated makefiles or using a template, however, this time I built up each feature of the makefile one at a time by learning the individual symbols and syntax. I also went through the Google C++ style guide for inspiration on how to best format the code for readability and became familiar with standards that I now plan to use in future C++ code. Plus I got some experience with Adobe Illustrator to make the [logo](https://github.com/MatthewSuntup/connect-four/blob/master/img/Connect%20Four%20Project%20Logo.png) at the top of this README!
 
 ## Future Work
 If I was to spend more time on this project in the future, I would be interested in working on the following areas:
